@@ -1,96 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compliance Hub | Cloud Sync Pro</title>
+    <title>Update Hub | Cloud Sync Pro</title>
     
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root { --navy: #002d62; --corp-blue: #0056b3; --bg-gray: #f8fafc; --text-dark: #1e293b; --border: #e2e8f0; --warning: #ef4444; --ai-purple: #7c3aed; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg-gray); color: var(--text-dark); line-height: 1.6; }
-        nav { background: var(--navy); color: white; padding: 1rem 10%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        /* --- THEME ENGINE --- */
+        :root[data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --nav-bg: #002d62; --primary: #0056b3; --border: #e2e8f0; --accent: #f1f5f9; }
+        :root[data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --nav-bg: #1e293b; --primary: #3b82f6; --border: #334155; --accent: #1e293b; }
+        :root[data-theme="midnight"] { --bg: #020617; --card: #0f172a; --text: #e2e8f0; --nav-bg: #020617; --primary: #818cf8; --border: #1e293b; --accent: #1e293b; }
+        :root[data-theme="forest"] { --bg: #064e3b; --card: #065f46; --text: #ecfdf5; --nav-bg: #042f2e; --primary: #10b981; --border: #047857; --accent: #065f46; }
+        :root[data-theme="sunset"] { --bg: #450a0a; --card: #7f1d1d; --text: #fef2f2; --nav-bg: #450a0a; --primary: #f87171; --border: #991b1b; --accent: #7f1d1d; }
+
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: all 0.3s ease; }
+        nav { background: var(--nav-bg); color: white; padding: 0.8rem 10%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .container { max-width: 900px; margin: 1.5rem auto; padding: 0 20px; }
-        
-        #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 320px; text-align: center; }
-        
-        #adminPanel { display: none; background: white; padding: 30px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 40px; }
-        .assistant-bar { background: #f5f3ff; border: 1px solid #ddd6fe; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 8px; }
-        .btn-tool { background: white; border: 1px solid #ddd6fe; color: var(--ai-purple); font-size: 0.7rem; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-weight: 600; }
-        
-        input[type="text"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; }
-        .btn { cursor: pointer; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; }
-        .btn-primary { background: var(--corp-blue); color: white; width: 100%; }
-        .btn-logout { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; font-size: 0.75rem; }
-        
-        .section-label { font-size: 0.8rem; font-weight: 700; color: #64748b; margin: 30px 0 10px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
-        .section-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-        .update-card { background: white; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 12px; }
-        .update-card.pinned { border-left: 5px solid var(--corp-blue); }
-        .card-header { padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .card-body { display: none; padding: 20px 25px; border-top: 1px solid var(--bg-gray); }
+
+        #adminPanel { display: none; background: var(--card); padding: 25px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .update-card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
+        .card-header { padding: 18px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .card-body { display: none; padding: 20px 25px; border-top: 1px solid var(--border); }
         .card-body.active { display: block; }
-        .action-link { font-size: 0.7rem; cursor: pointer; font-weight: 700; margin-right: 15px; }
+        
+        .btn { cursor: pointer; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-logout { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; font-size: 0.75rem; }
+        .theme-selector { padding: 5px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); margin-right: 10px; }
+        
+        #loginModal, #resetModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card); padding: 30px; border-radius: 16px; width: 320px; text-align: center; border: 1px solid var(--border); }
+
+        /* --- PRINT FIXES --- */
+        @page { size: auto; margin: 5mm 10mm; } /* This removes the file location/URL footer */
+
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                color: black !important; 
+                background: white !important; 
+                display: block !important;
+            }
+            table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+            thead { display: table-header-group; }
+            .no-print { display: none !important; }
+            .ql-editor { padding: 0 !important; overflow: visible !important; }
+        }
     </style>
 </head>
 <body>
 
-<div id="loginModal">
-    <div class="modal-content">
-        <h3>Creator Access</h3>
-        <input type="password" id="passInput" placeholder="Password">
-        <button class="btn btn-primary" onclick="checkAuth()">Login</button>
-        <button class="btn" style="background:none;" onclick="closeModal()">Cancel</button>
-    </div>
-</div>
+<div id="printArea" style="display: none;"></div>
 
 <nav>
-    <div style="font-weight:700;">Compliance Hub</div>
-    <div>
-        <span id="roleLabel" style="font-size: 0.7rem; padding:4px 10px;">Viewer</span>
-        <button id="authBtn" class="btn btn-logout" onclick="openModal()">Creator Login</button>
+    <div style="font-weight:700; font-size: 1.2rem;">Update Hub</div>
+    <div style="display: flex; align-items: center;">
+        <select class="theme-selector" onchange="changeTheme(this.value)" id="themePicker">
+            <option value="dark">🌙 Dark</option>
+            <option value="light">☀️ Light</option>
+            <option value="midnight">🌌 Midnight</option>
+            <option value="forest">🌲 Forest</option>
+            <option value="sunset">🌇 Sunset</option>
+        </select>
+        <span id="roleLabel" style="font-size: 0.7rem; margin-right: 10px; opacity: 0.7;">Viewer</span>
+        <button id="authBtn" class="btn btn-logout" onclick="openLogin()">Creator Login</button>
     </div>
 </nav>
 
 <div class="container">
     <section id="adminPanel">
         <h3 style="margin:0 0 15px 0;">Post New Update</h3>
-        <div class="assistant-bar">
-            <button class="btn-tool" onclick="runAssistant('formal')">Professional</button>
-            <button class="btn-tool" onclick="runAssistant('urgent')">Urgent</button>
-        </div>
-        <input type="text" id="postTitle" placeholder="Title...">
-        <div id="editor-container" style="height: 200px; background: white;"></div>
+        <input type="text" id="postTitle" placeholder="Title..." style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        <div id="editor-container" style="height: 250px; background: white; color: black;"></div>
         <button class="btn btn-primary" id="submitBtn" onclick="handlePublish()" style="margin-top:15px;">Publish to Cloud</button>
     </section>
 
     <div style="margin: 20px 0;">
-        <input type="text" id="searchInput" placeholder="🔍 Search all updates..." onkeyup="renderFeed()" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd;">
+        <input type="text" id="searchInput" placeholder="🔍 Search updates..." onkeyup="renderFeed()" style="width:100%; padding:14px 20px; border-radius:12px; border:1px solid var(--border); background: var(--card); color: var(--text);">
     </div>
+
     <div id="feedArea">Loading updates...</div>
 </div>
 
 <script>
-    // --- 1. SETUP SUPABASE ---
     const SUPABASE_URL = 'https://yanqtshgdcxkploupbop.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhbnF0c2hnZGN4a3Bsb3VwYm9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5MTA1MTYsImV4cCI6MjA4NzQ4NjUxNn0.kc4BaLqhBOyRVAukVNlDbFcR1L1aSE1f9eiqjXkTm34';
     
-    // Safety check for initialization
-    let _supabase;
-    try {
-        _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    } catch (e) {
-        console.error("Supabase fail:", e);
-    }
-
-    const DEFAULT_PASS_B64 = "VGVhbUFkbWluMTIz"; // TeamAdmin123
+    let _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let localUpdatesCache = [];
     let isCreator = false;
     let editTargetId = null;
 
@@ -99,140 +107,89 @@
         modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image']] }
     });
 
-    // --- 2. LOGIN LOGIC ---
-    function openModal() {
-        if (isCreator) {
-            if(confirm("Logout?")) { sessionStorage.clear(); window.location.reload(); }
-        } else { document.getElementById('loginModal').style.display = 'flex'; }
-    }
-    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
-    function checkAuth() {
-        const input = document.getElementById('passInput').value;
-        if (btoa(input) === DEFAULT_PASS_B64) {
-            isCreator = true;
-            sessionStorage.setItem('active_session', 'true');
-            closeModal();
-            refreshUI();
-        } else { alert("Wrong Password."); }
+    function printSpecificCard(id) {
+        const item = localUpdatesCache.find(u => u.id == id);
+        if (!item) return;
+        const printArea = document.getElementById('printArea');
+        
+        printArea.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <td>
+                            <div style="border-bottom: 2px solid #334155; padding: 10px 0; margin-bottom: 15px;">
+                                <h4 style="margin:0; color: #64748b; text-transform: uppercase; font-size: 0.8rem;">Update Hub</h4>
+                                <h1 style="margin: 5px 0 0 0; color: #0f172a; font-size: 1.6rem;">${item.title}</h1>
+                                <p style="margin: 5px 0 0 0; font-size: 0.75rem; color: #64748b;">Published: ${new Date(Number(item.timestamp)).toLocaleDateString()}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="ql-editor" style="color: #1e293b; line-height: 1.6; word-wrap: break-word;">
+                                ${item.body}
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
+        
+        window.print();
+        printArea.innerHTML = '';
     }
 
-    function refreshUI() {
-        document.getElementById('adminPanel').style.display = isCreator ? 'block' : 'none';
-        document.getElementById('roleLabel').innerText = isCreator ? 'Creator' : 'Viewer';
-        document.getElementById('authBtn').innerText = isCreator ? 'Logout' : 'Creator Login';
-        renderFeed();
-    }
-
-    // --- 3. CLOUD SYNC LOGIC ---
     async function handlePublish() {
         const title = document.getElementById('postTitle').value.trim();
         const body = quill.root.innerHTML;
         if (!title || body === '<p><br></p>') return alert("Fill all fields.");
-
-        const btn = document.getElementById('submitBtn');
-        btn.innerText = "Syncing...";
-        btn.disabled = true;
-
         try {
-            if (editTargetId) {
-                const { error } = await _supabase.from('compliance_updates').update({ title, body }).eq('id', editTargetId);
-                if (error) throw error;
-            } else {
-                const { error } = await _supabase.from('compliance_updates').insert([{ title, body, timestamp: Date.now() }]);
-                if (error) throw error;
-            }
-            resetEditor();
-            await renderFeed();
-            alert("Success: Synced to Cloud.");
-        } catch (e) {
-            console.error("Sync Error:", e);
-            alert("Sync Failed: Check Supabase RLS Policies.");
-        } finally {
-            btn.innerText = "Publish to Cloud";
-            btn.disabled = false;
-        }
+            if (editTargetId) await _supabase.from('compliance_updates').update({ title, body }).eq('id', editTargetId);
+            else await _supabase.from('compliance_updates').insert([{ title, body, timestamp: Date.now() }]);
+            resetEditor(); renderFeed();
+        } catch (e) { alert("Sync Error."); }
     }
 
     async function renderFeed() {
         const feed = document.getElementById('feedArea');
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const { data: updates } = await _supabase.from('compliance_updates').select('*').order('timestamp', { ascending: false });
         
-        const { data: updates, error } = await _supabase
-            .from('compliance_updates')
-            .select('*')
-            .order('timestamp', { ascending: false });
-
-        if (error) { feed.innerHTML = "Error loading from Cloud."; return; }
-
-        const filtered = (updates || []).filter(u => u.title.toLowerCase().includes(searchTerm) || u.body.toLowerCase().includes(searchTerm));
-        const FIFTEEN_DAYS = 1296000000;
+        localUpdatesCache = updates || []; 
+        const filtered = localUpdatesCache.filter(u => u.title.toLowerCase().includes(searchTerm) || u.body.toLowerCase().includes(searchTerm));
+        
         let html = '';
-        
-        const pinned = filtered.filter(u => (Date.now() - Number(u.timestamp)) < FIFTEEN_DAYS);
-        const history = filtered.filter(u => (Date.now() - Number(u.timestamp)) >= FIFTEEN_DAYS);
-
-        if (pinned.length > 0) {
-            html += '<div class="section-label">Active (Last 15 Days)</div>';
-            pinned.forEach(u => html += generateCard(u, true));
-        }
-        if (history.length > 0) {
-            html += '<div class="section-label">Archive</div>';
-            history.forEach(u => html += generateCard(u, false));
-        }
-        feed.innerHTML = html || '<p style="text-align:center; color:#999;">No updates found.</p>';
-    }
-
-    function generateCard(u, isPinned) {
-        return `
-            <div class="update-card ${isPinned ? 'pinned' : ''}">
+        filtered.forEach(u => {
+            html += `
+            <div class="update-card">
                 <div class="card-header" onclick="this.parentElement.querySelector('.card-body').classList.toggle('active')">
-                    <h2 style="margin:0; font-size:1rem;">${isPinned ? '● ' : ''}${u.title}</h2>
-                    <span style="font-size:0.7rem; color:#999">${new Date(Number(u.timestamp)).toLocaleDateString()}</span>
+                    <h2 style="margin:0; font-size:1rem; color: var(--primary);">✦ ${u.title}</h2>
+                    <span style="font-size:0.7rem; opacity:0.6">${new Date(Number(u.timestamp)).toLocaleDateString()}</span>
                 </div>
                 <div class="card-body ql-editor">
-                    ${u.body}
-                    <div style="margin-top:10px; border-top:1px solid #eee; padding-top:10px;">
-                        <span class="action-link" style="color:var(--corp-blue)" onclick="window.print()">Print</span>
-                        ${isCreator ? `
-                            <span class="action-link" style="color:#666" onclick="loadEdit(${u.id}, \`${u.title.replace(/'/g, "\\'")}\`, \`${u.body.replace(/`/g, "\\`")}\`)">Edit</span>
-                            <span class="action-link" style="color:var(--warning)" onclick="deletePost(${u.id})">Delete</span>
-                        ` : ''}
+                    <div>${u.body}</div>
+                    <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px; display:flex; gap:15px;" class="no-print">
+                        <span style="font-size:0.75rem; cursor:pointer; font-weight:700; color:var(--primary)" onclick="printSpecificCard(${u.id})">Print This Update</span>
+                        ${isCreator ? `<span style="font-size:0.75rem; cursor:pointer; opacity:0.7" onclick="loadEdit(${u.id})">Edit</span>` : ''}
                     </div>
                 </div>
             </div>`;
+        });
+        feed.innerHTML = html || '<p style="text-align:center; padding:40px;">No updates found.</p>';
     }
 
-    async function deletePost(id) {
-        if(confirm("Delete forever?")) {
-            await _supabase.from('compliance_updates').delete().eq('id', id);
-            renderFeed();
-        }
-    }
-
-    function loadEdit(id, title, body) {
-        editTargetId = id;
-        document.getElementById('postTitle').value = title;
-        quill.root.innerHTML = body;
-        document.getElementById('submitBtn').innerText = "Update Cloud Record";
-        window.scrollTo(0,0);
-    }
-
-    function resetEditor() {
-        editTargetId = null;
-        document.getElementById('postTitle').value = '';
-        quill.setContents([]);
-        document.getElementById('submitBtn').innerText = "Publish to Cloud";
-    }
-
-    function runAssistant(mode) {
-        let text = quill.getText().trim();
-        if(mode === 'urgent') quill.setText("URGENT ACTION REQUIRED: " + text.toUpperCase());
-        else if(mode === 'formal') quill.setText("Official Compliance Directive: " + text);
-    }
+    function changeTheme(theme) { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('hub-preferred-theme', theme); }
+    function openLogin() { if (isCreator) { sessionStorage.clear(); isCreator = false; refreshUI(); } else { document.getElementById('loginModal').style.display = 'flex'; } }
+    function refreshUI() { document.getElementById('adminPanel').style.display = isCreator ? 'block' : 'none'; renderFeed(); }
+    function resetEditor() { editTargetId = null; document.getElementById('postTitle').value = ''; quill.setContents([]); }
 
     window.onload = () => {
-        if (sessionStorage.getItem('active_session') === 'true') { isCreator = true; refreshUI(); } 
-        else { renderFeed(); }
+        const savedTheme = localStorage.getItem('hub-preferred-theme') || 'dark';
+        document.getElementById('themePicker').value = savedTheme;
+        changeTheme(savedTheme);
+        renderFeed();
     };
 </script>
 </body>
