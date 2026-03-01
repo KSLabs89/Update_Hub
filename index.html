@@ -165,7 +165,9 @@
     }
 
     function setupRealtime() {
-        _supabase.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'compliance_updates' }, () => { renderFeed(); }).subscribe();
+        _supabase.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'compliance_updates' }, () => { 
+            renderFeed(); 
+        }).subscribe();
     }
 
     async function handlePublish() {
@@ -186,12 +188,13 @@
     async function renderFeed() {
         const feed = document.getElementById('feedArea');
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        
+        // --- THE FIX: ALWAYS CLEAR FEED BEFORE RENDERING ---
+        feed.innerHTML = ""; 
+        
         const { data: updates, error } = await _supabase.from('compliance_updates').select('*').order('timestamp', { ascending: false });
         
-        if (error) return;
-        
-        // BUG FIX: Clears content before rendering new data to prevent duplicates
-        feed.innerHTML = ""; 
+        if (error) { feed.innerHTML = "Error loading updates."; return; }
         
         const filtered = (updates || []).filter(u => u.title.toLowerCase().includes(searchTerm) || u.body.toLowerCase().includes(searchTerm));
         const FIFTEEN_DAYS = 1296000000;
